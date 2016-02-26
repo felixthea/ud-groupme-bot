@@ -1,18 +1,30 @@
 var HTTPS = require('https');
-var cool = require('cool-ascii-faces');
 
 var botID = process.env.BOT_ID;
 
 function respond() {
-  console.log("this.req: ", this.req);
+  console.log("in respond");
+  console.log("this.req.chunks[0]: ", this.req.chunks[0]);
   var request = JSON.parse(this.req.chunks[0]),
-      botRegex = /^\/bot$/;
+      botRegex = /^\/bot$/,
+      msg = request.text,
+      firstWord = msg.split(" ")[0],
+      cmd = msg.split(" ")[1];
 
-  console.log("request: ", request)
-
-  if(request.text && botRegex.test(request.text)) {
+  if(request.text && botRegex.test(firstWord) && cmd) {
     this.res.writeHead(200);
-    postMessage();
+    if (cmd === "sup") {
+      whatsUp();
+    }
+
+    if (cmd === "help") {
+      sendHelp();
+    }
+
+    if (cmd === "8ball") {
+      eightBall();
+    }
+
     this.res.end();
   } else {
     console.log("don't care");
@@ -21,10 +33,47 @@ function respond() {
   }
 }
 
-function postMessage() {
-  var botResponse, options, body, botReq;
+function sendHelp() {
+  var response = "8ball - magic 8ball\ngif - for a gif";
+  postMessage(response);
+}
 
-  botResponse = cool();
+function whatsUp(text) {
+  postMessage("hello!");
+}
+
+function eightBall() {
+  var answers = [
+    'It is certain',
+    'It is decidedly so',
+    'Without a doubt',
+    'Yes, definitely',
+    'You may rely on it',
+    'As I see it, yes',
+    'Most likely',
+    'Outlook good',
+    'Yes',
+    'Signs point to yes',
+    'Reply hazy try again',
+    'Ask again later',
+    'Better not tell you now',
+    'Cannot predict now',
+    'Concentrate and ask again',
+    "Don't count on it",
+    'My reply is no',
+    'My sources say no',
+    'Outlook not so good',
+    'Very doubtful'
+  ],
+  selectedAnswer;
+
+  selectedAnswer = answers[Math.floor(Math.random() * answers.length)];
+
+  postMessage(selectedAnswer);
+}
+
+function postMessage(botResponse) {
+  var botResponse, options, body, botReq;
 
   options = {
     hostname: 'api.groupme.com',
