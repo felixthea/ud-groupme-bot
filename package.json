@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "director": "",
-    "forecast.io": "0.0.9"
+    "forecast.io": "0.0.9",
+    "q": "1.4.1"
   },
   "engines": {
     "node": "0.10.x"

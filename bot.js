@@ -1,6 +1,7 @@
 var HTTPS = require('https'),
 Forecast = require('forecast.io'),
-botID = process.env.BOT_ID;
+botID = process.env.BOT_ID,
+Q = require("q");
 
 function respond() {
   var request = JSON.parse(this.req.chunks[0]),
@@ -65,8 +66,11 @@ function eightBall() {
 }
 
 function weather(rest) {
-  var options,
-  zipData = getLatLong(rest[0]);
+  var options;
+
+  console.log(getLatLong(rest[0]));
+  // zipData = getLatLong(rest[0]);
+  // console.log('zipData: ', zipData);
   // lat = zipData.lat,
   // lng = zipData.lng;
 
@@ -102,18 +106,20 @@ function getLatLong(zip) {
     method: 'GET'
   }
 
-  botReq = HTTPS.request(options, function(res){
-    console.log('res: ', res);
-    return res;
+  var botReq = HTTPS.request(options, function(res) {
+    var str = '';
+
+    res.on('data', function (chunk) {
+      str += chunk;
+    })
+
+    res.on('end', function() {
+      return JSON.parse(str);
+    })
   });
 
-  botReq.on('error', function(err) {
-    console.log('err: ', err);
-  });
-
-  botReq.on('timeout', function(err) {
-    console.log('timeout err: ', err);
-  });
+  botReq.end();
+  return botReq;
 }
 
 function writeWeather(s,h,l){
