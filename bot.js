@@ -3,8 +3,8 @@ var HTTPS = require('https');
 var botID = process.env.BOT_ID;
 
 function respond() {
-  console.log("in respond");
-  console.log("this.req.chunks[0]: ", this.req.chunks[0]);
+//   console.log("in respond");
+//   console.log("this.req.chunks[0]: ", this.req.chunks[0]);
   var request = JSON.parse(this.req.chunks[0]),
       botRegex = /^\/bot$/,
       msg = request.text,
@@ -12,18 +12,14 @@ function respond() {
       cmd = msg.split(" ")[1];
 
   if(request.text && botRegex.test(firstWord) && cmd) {
+    var commands = {
+      "help": sendHelp,
+      "8ball": eightBall
+    };
+
     this.res.writeHead(200);
-    if (cmd === "sup") {
-      whatsUp();
-    }
 
-    if (cmd === "help") {
-      sendHelp();
-    }
-
-    if (cmd === "8ball") {
-      eightBall();
-    }
+    commands[cmd]();
 
     this.res.end();
   } else {
@@ -36,10 +32,6 @@ function respond() {
 function sendHelp() {
   var response = "8ball - magic 8ball\ngif - for a gif";
   postMessage(response);
-}
-
-function whatsUp(text) {
-  postMessage("hello!");
 }
 
 function eightBall() {
