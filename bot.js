@@ -1,25 +1,25 @@
-var HTTPS = require('https');
-
-var botID = process.env.BOT_ID;
+var HTTPS = require('https'),
+Forecast = require('forecast.io'),
+botID = process.env.BOT_ID;
 
 function respond() {
-//   console.log("in respond");
-//   console.log("this.req.chunks[0]: ", this.req.chunks[0]);
   var request = JSON.parse(this.req.chunks[0]),
       botRegex = /^\/bot$/,
       msg = request.text,
       firstWord = msg.split(" ")[0],
-      cmd = msg.split(" ")[1];
+      cmd = msg.split(" ")[1],
+      rest = msg.split(" ").slice(2);
 
   if(request.text && botRegex.test(firstWord) && cmd) {
     var commands = {
       "help": sendHelp,
-      "8ball": eightBall
+      "8ball": eightBall,
+      "weather": weather
     };
 
     this.res.writeHead(200);
 
-    commands[cmd]();
+    commands[cmd](rest);
 
     this.res.end();
   } else {
@@ -62,6 +62,65 @@ function eightBall() {
   selectedAnswer = answers[Math.floor(Math.random() * answers.length)];
 
   postMessage(selectedAnswer);
+}
+
+function weather(rest) {
+  var options,
+  zipData = getLatLong(rest[0]);
+  // lat = zipData.lat,
+  // lng = zipData.lng;
+
+  // options = {
+  //   APIKey: process.env.FORECAST_API_KEY
+  // };
+
+  // forecast = new Forecast(options);
+
+  // forecast.get(lat, lng, function (err, res, data) {
+  //   if (err) throw err;
+  //   var today = data.daily.data[0],
+  //   tomorrow = data.daily.data[1],
+  //   msg;
+
+  //   msg = "Today: " + writeWeather(today.summary, today.temperatureMax, today.temperatureMin);
+  //   msg += "\nTomorrow: " + writeWeather(tomorrow.summary, tomorrow.temperatureMax, tomorrow.temperatureMin);
+
+  //   postMessage(msg);
+  // });
+
+  // postMessage("done");
+}
+
+function getLatLong(zip) {
+  var options,
+  auth_id = process.env.ZIPCODE_AUTH_ID,
+  auth_token = process.env.ZIPCODE_AUTH_TOKEN;
+
+  options = {
+    hostname: 'api.smartystreets.com',
+    path: '/zipcode?' + 'auth-id=' + auth_id + '&' + 'auth-token=' + auth_token + '&zipcode=' + zip,
+    method: 'GET'
+  }
+
+  botReq = HTTPS.request(options, function(res){
+    console.log('res: ', res);
+    return res;
+  });
+
+  botReq.on('error', function(err) {
+    console.log('err: ', err);
+  });
+
+  botReq.on('timeout', function(err) {
+    console.log('timeout err: ', err);
+  });
+}
+
+function writeWeather(s,h,l){
+  h = Math.round(h);
+  l = Math.round(l);
+
+  return s + " The high is " + h + " and the low is " + l + ".";
 }
 
 function postMessage(botResponse) {
